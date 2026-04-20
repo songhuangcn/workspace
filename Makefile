@@ -14,6 +14,9 @@ start:
 logs:
 	$(COMPOSE) logs -f app
 
+.PHONY: restart
+restart: stop start
+
 .PHONY: stop
 stop:
 	$(COMPOSE) stop
