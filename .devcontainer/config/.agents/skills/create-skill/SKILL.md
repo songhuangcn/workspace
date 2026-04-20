@@ -1,22 +1,22 @@
 ---
 name: create-skill
-description: 'Create agent skills following the standard format and directory conventions. Use when user asks to "create a skill", "创建 skill", "记录成 skill", "保存为 skill", or similar. Ensures correct directory, frontmatter format, and content structure by referencing existing skills.'
+description: 'Create skills following the standard format and directory conventions. Use when user asks to "create a skill", "创建 skill", "记录成 skill", "保存为 skill", or similar. Ensures correct directory, frontmatter format, and content structure by referencing existing skills.'
 license: MIT
 allowed-tools: Bash, Read, Write, Glob, Grep
 ---
 
-# Create Agent Skill
+# Create Skill
 
 ## Overview
 
-Create well-structured agent skills following the established conventions. Skills are Markdown files with YAML frontmatter that provide domain-specific instructions to the agent.
+Create well-structured skills following the established conventions. Skills are Markdown files with YAML frontmatter that provide domain-specific instructions and workflows. They are tool-agnostic and can be used by any AI coding agent (OpenCode, Claude Code, Cursor, etc.).
 
 ## Scope Rules
 
 | User intent | Keywords | Location |
 |---|---|---|
 | **Default (no scope specified)** | "创建 skill", "create skill" | `~/.agents/skills/<name>/SKILL.md` (global) |
-| **Project-level** | "项目级 skill", "project skill", "local skill" | `.claude/skills/<name>/SKILL.md` (project root) |
+| **Project-level** | "项目级 skill", "project skill", "local skill" | `<project-root>/.agents/skills/<name>/SKILL.md` |
 
 **Always default to global scope** unless the user explicitly requests project-level.
 
@@ -49,8 +49,8 @@ From the user's request, derive:
 Directory structure:
 
 ```
-~/.agents/skills/<name>/SKILL.md    # global (default)
-.claude/skills/<name>/SKILL.md      # project-level (only when explicitly requested)
+~/.agents/skills/<name>/SKILL.md              # global (default)
+<project-root>/.agents/skills/<name>/SKILL.md  # project-level (only when explicitly requested)
 ```
 
 ### 4. SKILL.md format
