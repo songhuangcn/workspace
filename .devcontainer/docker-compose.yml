@@ -1,3 +1,4 @@
+name: workspace-devcontainer
 services:
   app:
     build: .

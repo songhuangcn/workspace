@@ -1,8 +1,31 @@
-.PHONY: run stop
+COMPOSE = docker compose -f .devcontainer/docker-compose.yml
 
+.PHONY: run
 run:
-	docker compose -f .devcontainer/docker-compose.yml up -d --build
-	docker compose -f .devcontainer/docker-compose.yml exec app opencode web --port 4096 --host 0.0.0.0
+	$(COMPOSE) up -d
+	$(COMPOSE) exec app opencode web --port 4096 --hostname 0.0.0.0
 
+.PHONY: start
+start:
+	$(COMPOSE) up -d
+	$(COMPOSE) exec -d app opencode web --port 4096 --hostname 0.0.0.0
+
+.PHONY: logs
+logs:
+	$(COMPOSE) logs -f app
+
+.PHONY: stop
 stop:
-	docker compose -f .devcontainer/docker-compose.yml down
+	$(COMPOSE) stop
+
+.PHONY: build
+build:
+	$(COMPOSE) build
+
+.PHONY: down
+down:
+	$(COMPOSE) down
+
+.PHONY: destroy
+destroy:
+	$(COMPOSE) down --volumes --rmi all
