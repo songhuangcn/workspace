@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    env_file:
+      - .env
+    ports:
+      - "4096:4096"
+    volumes:
+      - ..:/workspace
+      - ./config/.ssh:/home/ubuntu/.ssh
+      - ./config/.agents:/home/ubuntu/.agents
+      - ./config/.lark-cli:/home/ubuntu/.lark-cli
+      - ./config/gh:/home/ubuntu/.config/gh
+      - ./config/opencode:/home/ubuntu/.config/opencode
+      - ./data/opencode:/home/ubuntu/.local/share/opencode

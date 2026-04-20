@@ -1,0 +1,15 @@
+# Ignore everything except devcontainer config and Makefile
+*
+!.gitignore
+!.devcontainer/
+!.devcontainer/**
+!Makefile
+
+# Secrets and OS files inside .devcontainer
+.devcontainer/.env
+.devcontainer/config/.ssh/*
+.devcontainer/config/.lark-cli/*
+.devcontainer/config/gh/*
+.devcontainer/data/opencode/*
+!**/.keep
+.DS_Store
