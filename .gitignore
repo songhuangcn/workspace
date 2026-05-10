@@ -1,8 +1,10 @@
-# Ignore everything except devcontainer config and Makefile
+# Ignore everything except devcontainer config, GitHub workflows, and Makefile
 *
 !.gitignore
 !.devcontainer/
 !.devcontainer/**
+!.github/
+!.github/**
 !Makefile
 
 # Secrets and OS files inside .devcontainer

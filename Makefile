@@ -21,6 +21,13 @@ restart: stop start
 stop:
 	$(COMPOSE) stop
 
+.PHONY: bash
+bash:
+	$(COMPOSE) exec app bash
+
+.PHONY: update
+update: down build start
+
 .PHONY: build
 build:
 	$(COMPOSE) build
