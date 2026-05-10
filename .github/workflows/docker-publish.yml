@@ -1,9 +1,11 @@
-name: Build and Push Docker Image
+name: build-devcontainer
 
 on:
   push:
     branches:
       - main
+    paths:
+      - .devcontainer/Dockerfile
 
 permissions:
   contents: read

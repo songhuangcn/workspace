@@ -26,7 +26,11 @@ bash:
 	$(COMPOSE) exec app bash
 
 .PHONY: update
-update: down build start
+update: pull down start
+
+.PHONY: pull
+pull:
+	$(COMPOSE) pull app
 
 .PHONY: build
 build:
