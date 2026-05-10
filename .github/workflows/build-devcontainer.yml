@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - .devcontainer/Dockerfile
+      - .github/workflows/build-devcontainer.yml
   workflow_dispatch:
 
 permissions:
