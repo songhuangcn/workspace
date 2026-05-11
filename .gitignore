@@ -6,6 +6,7 @@
 !.github/
 !.github/**
 !Makefile
+!README.md
 
 # Secrets and OS files inside .devcontainer
 .devcontainer/.env
