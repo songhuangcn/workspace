@@ -41,5 +41,5 @@ jobs:
           platforms: linux/arm64
           push: true
           tags: |
-            songhuangcn/workspace-java:${{ steps.vars.outputs.short_sha }}
+            songhuangcn/workspace-java:commit-${{ steps.vars.outputs.short_sha }}
             songhuangcn/workspace-java:latest
