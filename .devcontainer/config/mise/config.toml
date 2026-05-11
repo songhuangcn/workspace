@@ -1,8 +1,0 @@
-[tools]
-node = "22"
-opencode = "1.14.46"
-python = "3.13"
-docker-cli = "28"
-kubectl = "1.35"
-uv = "0"
-rg = "15"
