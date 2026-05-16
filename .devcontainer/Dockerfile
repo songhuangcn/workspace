@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gh \
     openssh-client \
     locales \
+    sqlite3 \
     && locale-gen en_US.UTF-8 zh_CN.UTF-8 \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -48,5 +49,7 @@ RUN mise use --global \
     uv@0 \
     rg@15 \
     && mise cache clear
+
+RUN pip install requests urllib3
 
 CMD ["sleep", "infinity"]
