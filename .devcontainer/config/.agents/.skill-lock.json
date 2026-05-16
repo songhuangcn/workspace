@@ -244,6 +244,42 @@
       "pluginName": "example-skills",
       "installedAt": "2026-04-20T14:05:57.256Z",
       "updatedAt": "2026-04-20T14:05:57.256Z"
+    },
+    "deep-research": {
+      "source": "imbad0202/academic-research-skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/imbad0202/academic-research-skills.git",
+      "skillPath": "deep-research/SKILL.md",
+      "skillFolderHash": "88d04810a4a2edc08bf1798c355329706e74643d",
+      "installedAt": "2026-05-16T08:32:21.575Z",
+      "updatedAt": "2026-05-16T08:32:21.575Z"
+    },
+    "academic-paper": {
+      "source": "imbad0202/academic-research-skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/imbad0202/academic-research-skills.git",
+      "skillPath": "academic-paper/SKILL.md",
+      "skillFolderHash": "a6fd1440fad51941c75b4390d801da80aa60442e",
+      "installedAt": "2026-05-16T08:32:25.370Z",
+      "updatedAt": "2026-05-16T08:32:25.370Z"
+    },
+    "academic-paper-reviewer": {
+      "source": "imbad0202/academic-research-skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/imbad0202/academic-research-skills.git",
+      "skillPath": "academic-paper-reviewer/SKILL.md",
+      "skillFolderHash": "6c6249931da1021404bae013deb42d7facada8ab",
+      "installedAt": "2026-05-16T08:32:29.410Z",
+      "updatedAt": "2026-05-16T08:32:29.410Z"
+    },
+    "academic-pipeline": {
+      "source": "imbad0202/academic-research-skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/imbad0202/academic-research-skills.git",
+      "skillPath": "academic-pipeline/SKILL.md",
+      "skillFolderHash": "f8b3055881d6805cf1974b84ae9f4af6a43be5c9",
+      "installedAt": "2026-05-16T08:32:32.767Z",
+      "updatedAt": "2026-05-16T08:32:32.767Z"
     }
   },
   "dismissed": {}
