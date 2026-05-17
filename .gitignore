@@ -1,18 +1,18 @@
 # Ignore everything except devcontainer config, GitHub workflows, and Makefile
 *
+
 !.gitignore
+!Makefile
+!README.md
 !.devcontainer/
 !.devcontainer/**
 !.github/
 !.github/**
-!Makefile
-!README.md
 
 # Secrets and OS files inside .devcontainer
-.devcontainer/.env
-.devcontainer/config/.ssh/*
-.devcontainer/config/.lark-cli/*
-.devcontainer/config/gh/*
-.devcontainer/data/opencode/*
+.devcontainer/config/**
+.devcontainer/data/**
+
+.env
 !**/.keep
 .DS_Store

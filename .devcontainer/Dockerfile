@@ -50,6 +50,9 @@ RUN mise use --global \
     rg@15 \
     && mise cache clear
 
-RUN pip install requests urllib3
+RUN pip install requests~=2.32.5 urllib3~=2.6.3 pymupdf
+
+# keep permissions
+RUN mkdir -p ~/.vscode-server
 
 CMD ["sleep", "infinity"]

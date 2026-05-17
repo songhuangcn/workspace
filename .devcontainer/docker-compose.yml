@@ -9,8 +9,11 @@ services:
       - "4096:4096"
     volumes:
       - ..:/workspace
-      - ./config/.ssh:/home/ubuntu/.ssh
-      - ./config/.agents:/home/ubuntu/.agents
-      - ./config/gh:/home/ubuntu/.config/gh
+      - ~/.ssh:/home/ubuntu/.ssh
+      - ~/.gitconfig:/home/ubuntu/.gitconfig
+      - ./agents:/home/ubuntu/.agents
       - ./config/opencode:/home/ubuntu/.config/opencode
+      - ./config/gh:/home/ubuntu/.config/gh
       - ./data/opencode:/home/ubuntu/.local/share/opencode
+      - ./data/vscode-server-extensions:/home/ubuntu/.vscode-server/extensions
+      - ./data/vscode-server-data:/home/ubuntu/.vscode-server/data
