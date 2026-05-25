@@ -49,7 +49,7 @@ RUN curl https://mise.run/bash | sh
 RUN mise use --global \
     node@22 \
     python@3.13 \
-    opencode@1.14.46 \
+    opencode@1.15.10 \
     docker-cli@28 \
     kubectl@1.35 \
     uv@0 \
