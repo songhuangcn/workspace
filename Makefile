@@ -10,6 +10,15 @@ start:
 	$(COMPOSE) up -d
 	$(COMPOSE) exec -d app opencode web --port 4096 --hostname 0.0.0.0
 
+.PHONY: start-opencode
+start-opencode:
+	$(COMPOSE) exec -d app opencode web --port 4096 --hostname 0.0.0.0
+
+.PHONY: restart-opencode
+restart-opencode:
+	$(COMPOSE) exec app sh -c "lsof -ti tcp:4096 | xargs -r kill || true"
+	$(COMPOSE) exec -d app opencode web --port 4096 --hostname 0.0.0.0
+
 .PHONY: logs
 logs:
 	$(COMPOSE) logs -f app
