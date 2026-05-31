@@ -424,6 +424,61 @@ The cost is multiplicative: a 10-stage pipeline with cross-model enabled produce
 - Schema: `shared/contracts/passport/audit_artifact_entry.schema.json`
 - Wrapper: `scripts/run_codex_audit.sh`
 
+### 3.6 Claim-Faithfulness Audit Gate (v3.8)
+
+**Trigger.** Stage 4 → Stage 5 transition, in the same handoff slot as the v3.7.1 Cite-Time Provenance Finalizer. The audit dispatches AFTER the Cite-Time Provenance Finalizer pass (anchor-presence settled per v3.7.3 §3.1) and BEFORE `formatter_agent` runs its hard gate at the start of Stage 5. Mirrors the §3.5 audit-between-deliverable-and-consumption ordering. Spec: `docs/design/2026-05-15-issue-103-claim-alignment-audit-spec.md` §5 + §1 deliverable 4.
+
+**Why not Stage 5→6:** `formatter_agent`'s terminal hard gate runs **during** Stage 5. Dispatching at Stage 5→6 would produce `claim_audit_results[]` after the gate has already passed; HIGH-WARN-CLAIM-NOT-SUPPORTED could not block output. Stage 4→5 is the only slot where (a) the draft prose carries resolved v3.7.3 anchors, (b) the cite finalizer has settled anchor presence, and (c) the formatter hard gate has NOT yet run.
+
+**Mode flag.** Audit dispatch is **opt-in** per pipeline run; configurable in `academic-pipeline/SKILL.md` mode flags. Default OFF for v3.8.0; ramp-on plan deferred to post-calibration evidence. When OFF, the gate is skipped entirely and Stage 5 proceeds as in v3.7.x.
+
+**The audit agent receives.**
+
+- All in-text citations with their resolved `<!--ref:slug ...-->` + `<!--anchor:...-->` marker pairs (post-finalizer)
+- The `claim_intent_manifests[]` aggregate from the writing-stage agents (per spec §3.2 + the v3.8 "Claim Intent Manifest Emission" sibling sections on `synthesis_agent` / `draft_writer_agent` / `report_compiler_agent`)
+- The `literature_corpus[]` aggregate (retrieval input)
+- **The Stage 4 draft sentence stream — all uncited sentences with `sentence_text` + `section_path` + optional `adjacent_text`** (the surrounding 1–3 clauses for context). Required for the §4 step 5 stream (d) `constraint_violations[]` HIGH-WARN path (any uncited sentence whose scope matches an MNC/NC rule + judge returns VIOLATED) AND the §4 step 6 `uncited_assertions[]` LOW-WARN advisory path. Without this stream the `[HIGH-WARN-CONSTRAINT-VIOLATION-UNCITED]` gate-refuse annotation cannot fire for author-declared MUST-NOT violations that carry no citation. See `claim_ref_alignment_audit_agent.md` Input contract for the full schema.
+
+**Outputs feeding formatter hard gate (same Stage 5 pass).**
+
+- `claim_audit_results[]` — drives the 8-row matrix annotations below
+- `constraint_violations[]` — drives `[HIGH-WARN-CONSTRAINT-VIOLATION-UNCITED ({violated_constraint_id})]` annotation. MUST be passed alongside `claim_audit_results[]` — without this the uncited HIGH-WARN gate-refuse path silently disappears (no claim_audit_result row exists for uncited constraint violations per §3.5 schema split)
+- `uncited_assertions[]` — drives `[UNCITED-ASSERTION]` LOW-WARN advisory
+- `uncited_audit_failures[]` (v3.8.2 / #118) — drives `[CLAIM-AUDIT-TOOL-FAILURE-UNCITED — <fault-class>]` MED-WARN advisory annotation. MUST be passed alongside `claim_audit_results[]` so the formatter sees uncited-path judge outages — without this hand-off the operational signal stays silent in production (mirrors cited-path INV-14 but uses a dedicated aggregate because `claim_audit_result.ref_slug` is required). Gate passes; retry-next-pass remediation. See `claim_ref_alignment_audit_agent.md` Output emission table and spec §3.6.
+- `claim_drifts[]` — drives `[LOW-WARN-CLAIM-DRIFT — kind=...]` LOW-WARN advisory (per D4-a — drift never gate-refuses)
+- `audit_sampling_summaries[]` — drives paper-level `[CLAIM-AUDIT-SAMPLED — k/N audited]` annotation when audited_count < total_citation_count (S-INV-3)
+- Per-citation / per-sentence annotations injected adjacent to the existing v3.7.1 finalizer annotations. HIGH-WARN classes block; MED/LOW-WARN advisory passes.
+
+**Outputs feeding Stage 6 self-reflection.**
+
+- Per-stage `defect_stage` histogram appendix (renders when ≥5 completed entries via `scripts/claim_audit_finalizer.py:render_stage6_histogram`) — added to the existing Stage 6 AI Self-Reflection Report after gate pass.
+
+**Finalizer matrix (8-row).** The matrix discriminates the previously-conflated paywall vs anchorless cases by reading `ref_retrieval_method` alongside `(judgment, defect_stage)`. Rows are evaluated top-to-bottom, first match wins. Spec source-of-truth: §5. Implementation: `scripts/claim_audit_finalizer.py:classify_claim_audit_result`.
+
+| `judgment` | `defect_stage` | `ref_retrieval_method` | Annotation | Severity Tier | Gate behavior |
+|---|---|---|---|---|---|
+| SUPPORTED | `null` | (any) | (no annotation) | — | pass |
+| AMBIGUOUS | source_description / citation_anchor / synthesis_overclaim / null | (any) | `[CLAIM-AUDIT-AMBIGUOUS]` | LOW-WARN | pass |
+| UNSUPPORTED | source_description / metadata / citation_anchor / synthesis_overclaim | (any) | `[HIGH-WARN-CLAIM-NOT-SUPPORTED]` | HIGH-WARN | gate-refuse |
+| UNSUPPORTED | negative_constraint_violation | (any) | `[HIGH-WARN-NEGATIVE-CONSTRAINT-VIOLATION ({violated_constraint_id})]` | HIGH-WARN | gate-refuse |
+| RETRIEVAL_FAILED | retrieval_existence | not_found | `[HIGH-WARN-FABRICATED-REFERENCE]` | HIGH-WARN | gate-refuse |
+| RETRIEVAL_FAILED | not_applicable | not_attempted | `[HIGH-WARN-CLAIM-AUDIT-ANCHORLESS — v3.7.3 R-L3-1-A VIOLATION REACHED AUDIT]` | HIGH-WARN | gate-refuse (defense-in-depth) |
+| RETRIEVAL_FAILED | not_applicable | failed | `[CLAIM-AUDIT-UNVERIFIED — REFERENCE FULL-TEXT NOT RETRIEVABLE]` | LOW-WARN | pass (paywall — D2) |
+| RETRIEVAL_FAILED | not_applicable | audit_tool_failure | `[CLAIM-AUDIT-TOOL-FAILURE — <fault-class>]` | MED-WARN | pass (retry next pass) |
+
+**Why three rows for `(RETRIEVAL_FAILED, not_applicable)`:** anchor=none (INV-6/INV-11), paywall (INV-10), and audit-tool failure (INV-14) all emit this `(judgment, defect_stage)` pair but mean three different things. Anchorless is a contract violation that v3.7.3 should have already gate-refused upstream — defense-in-depth row HIGH-WARN gate-refuse. Paywall is a stable access restriction — legitimate tool/access failure, LOW-WARN advisory pass. Audit-tool failure is a transient infrastructure outage (judge timeout, retrieval 5xx, network error) — MED-WARN advisory pass with retry-next-pass remediation. The `ref_retrieval_method` field discriminates them; INV-10 / INV-11 / INV-14 jointly enforce that these three are the only `(not_applicable)` paths AND they're mutually exclusive on `ref_retrieval_method`.
+
+**`/ars-mark-read` asymmetry.** Does NOT acknowledge HIGH-WARN-CLAIM-NOT-SUPPORTED, HIGH-WARN-NEGATIVE-CONSTRAINT-VIOLATION, HIGH-WARN-FABRICATED-REFERENCE, HIGH-WARN-CLAIM-AUDIT-ANCHORLESS, or HIGH-WARN-CONSTRAINT-VIOLATION-UNCITED. Remediation: user fixes the prose (re-cites, drops claim, revises). Mirrors v3.7.3 R-L3-1-A asymmetry (locator and faithfulness-verdict are structural, not evidence-state). Implementation: `claim_audit_finalizer.py:ars_mark_read_clears`.
+
+**Cross-references.**
+
+- Spec: `docs/design/2026-05-15-issue-103-claim-alignment-audit-spec.md` §5 (matrix), §3 (schemas), §4 (agent prompt structure), §6 (lint)
+- Agent prompt: `academic-pipeline/agents/claim_ref_alignment_audit_agent.md`
+- Schemas: `shared/contracts/passport/claim_audit_result.schema.json`, `claim_intent_manifest.schema.json`, `uncited_assertion.schema.json`, `claim_drift.schema.json`, `constraint_violation.schema.json`
+- Finalizer module: `scripts/claim_audit_finalizer.py` (8-row matrix + Stage 6 histogram)
+- Pipeline module: `scripts/claim_audit_pipeline.py` (§4 step 1-6)
+- Lint: `scripts/check_claim_audit_consistency.py`
+
 ### 4. Transition Management
 
 **Before each transition, verify the output artifact conforms to its schema in `shared/handoff_schemas.md`.** If schema validation fails, request the producing agent to re-generate the artifact before proceeding.
@@ -698,7 +753,44 @@ For each `<!--ref:slug--><!--anchor:<kind>:<value>-->` marker pair:
 
 ### Audit trail (v3.7.3 update)
 
-Per-pass resolution counts gain four new columns: NO-LOCATOR (precedence-zero hits), CONTAMINATED-PREPRINT (annotation count), CONTAMINATED-UNMATCHED (annotation count), CONTAMINATED-BOTH (annotation count). All four surface in the Stage 4.5 integrity-check report alongside the existing HIGH / MED / LOW / OK counts.
+Per-pass resolution counts gain ten new columns: NO-LOCATOR (precedence-zero hits, v3.7.3 §3.1), CONTAMINATED-PREPRINT (v3.7.3 §3.2), CONTAMINATED-UNMATCHED (v3.7.3 §3.2 legacy single-S2 case), CONTAMINATED-PREPRINT+UNMATCHED (v3.7.3 §3.2 legacy combination), CONTAMINATED-COVERAGE-NOISE (v3.9.0 §3.3 k=1 k_max≥2 OR k=1 k_max=1 with non-S2 single index), CONTAMINATED-PREPRINT+COVERAGE-NOISE (v3.9.0 composition), CONTAMINATED-PARTIAL-UNMATCH (v3.9.0 §3.3 k=2), CONTAMINATED-PREPRINT+PARTIAL-UNMATCH (v3.9.0 composition), CONTAMINATED-TRIANGULATION-UNMATCHED (v3.9.0 §3.3 k=3), CONTAMINATED-PREPRINT+TRIANGULATION-UNMATCHED (v3.9.0 composition). All ten surface in the Stage 4.5 integrity-check report alongside the existing HIGH / MED / LOW / OK counts. Compatibility note: the v3.7.3 CONTAMINATED-BOTH column is renamed to CONTAMINATED-PREPRINT+UNMATCHED for naming consistency with v3.9.0 composition order.
+
+## Cite-Time Provenance Finalizer — v3.9.0 extension (triangulation tiers)
+
+Spec: `docs/design/2026-05-17-ars-v3.9.0-cross-index-triangulation-measurement-spec.md` §3.3.
+
+v3.9.0 extends the v3.7.3 contamination annotation channel with three new lookup-derived suffix shapes. The base 5-cell matrix is unchanged. The annotation rule expands as follows:
+
+**Trigger:** annotation fires when (base resolution ∈ {`ok`, `LOW-WARN`}) AND (`preprint_post_llm_inflection` is true OR any of `semantic_scholar_unmatched` / `openalex_unmatched` / `crossref_unmatched` is true). Entries with `contamination_signals` present but all fields false (computed-clean) produce no suffix — v3.7.3 behavior preserved.
+
+**Compute k (triangulation count):** k = count of `*_unmatched` fields with value `true`, over fields that are present. Absent fields are excluded (per spec R-L3-2-C: absent ≠ false). k_max = count of `*_unmatched` fields that are present (0-3).
+
+**Suffix shape table:**
+
+| Base | preprint flag | k | k_max | Present field if k_max=1 | Suffix |
+|---|---|---|---|---|---|
+| `ok` / `LOW-WARN` | false / absent | 0 | any | — | (no suffix) |
+| `ok` / `LOW-WARN` | true | 0 | any | — | `CONTAMINATED-PREPRINT` |
+| `ok` / `LOW-WARN` | false / absent | 1 | 1 | `semantic_scholar_unmatched` | `CONTAMINATED-UNMATCHED` (v3.7.3 legacy) |
+| `ok` / `LOW-WARN` | true | 1 | 1 | `semantic_scholar_unmatched` | `CONTAMINATED-PREPRINT+UNMATCHED` (v3.7.3 legacy) |
+| `ok` / `LOW-WARN` | false / absent | 1 | 1 | `openalex_unmatched` or `crossref_unmatched` | `CONTAMINATED-COVERAGE-NOISE` |
+| `ok` / `LOW-WARN` | true | 1 | 1 | `openalex_unmatched` or `crossref_unmatched` | `CONTAMINATED-PREPRINT+COVERAGE-NOISE` |
+| `ok` / `LOW-WARN` | false / absent | 1 | 2-3 | — | `CONTAMINATED-COVERAGE-NOISE` |
+| `ok` / `LOW-WARN` | true | 1 | 2-3 | — | `CONTAMINATED-PREPRINT+COVERAGE-NOISE` |
+| `ok` / `LOW-WARN` | false / absent | 2 | 2-3 | — | `CONTAMINATED-PARTIAL-UNMATCH` |
+| `ok` / `LOW-WARN` | true | 2 | 2-3 | — | `CONTAMINATED-PREPRINT+PARTIAL-UNMATCH` |
+| `ok` / `LOW-WARN` | false / absent | 3 | 3 | — | `CONTAMINATED-TRIANGULATION-UNMATCHED` |
+| `ok` / `LOW-WARN` | true | 3 | 3 | — | `CONTAMINATED-PREPRINT+TRIANGULATION-UNMATCHED` |
+
+**Composition order:** `PREPRINT` token first, triangulation token second, joined by `+`. The canonical token order list is `[PREPRINT, UNMATCHED | COVERAGE-NOISE | PARTIAL-UNMATCH | TRIANGULATION-UNMATCHED]`.
+
+**Gate semantics:** All v3.9.0 suffixes are advisory. The terminal gate refusal list is NOT extended. `formatter_agent.md` pass-through allowlist MUST extend from 3 v3.7.3 suffixes to 9 (3 legacy + 6 v3.9.0) per R-L3-2-E. `/ars-mark-read` behavior is unchanged.
+
+Example markers:
+- `<!--ref:smith2024 LOW-WARN CONTAMINATED-COVERAGE-NOISE-->` — single-index unmatched, k_max ≥ 2.
+- `<!--ref:smith2024 ok CONTAMINATED-PARTIAL-UNMATCH-->` — two-of-three unmatched.
+- `<!--ref:smith2024 LOW-WARN CONTAMINATED-TRIANGULATION-UNMATCHED-->` — all three indexes unmatched.
+- `<!--ref:smith2024 LOW-WARN CONTAMINATED-PREPRINT+TRIANGULATION-UNMATCHED-->` — preprint heuristic + k=3.
 
 ---
 

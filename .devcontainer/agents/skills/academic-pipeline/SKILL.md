@@ -2,8 +2,8 @@
 name: academic-pipeline
 description: "Orchestrator for the full academic research pipeline: research -> write -> integrity check -> review -> revise -> re-review -> re-revise -> final integrity check -> finalize. Coordinates deep-research, academic-paper, and academic-paper-reviewer into a seamless 10-stage workflow with mandatory integrity verification, two-stage peer review, and reproducible quality gates. Triggers on: academic pipeline, research to paper, full paper workflow, paper pipeline, end-to-end paper, research-to-publication, complete paper workflow."
 metadata:
-  version: "3.7.0"
-  last_updated: "2026-05-05"
+  version: "3.9.4.2"
+  last_updated: "2026-05-19"
   depends_on: "deep-research, academic-paper, academic-paper-reviewer"
   status: active
   data_access_level: verified_only
@@ -14,11 +14,15 @@ metadata:
     - academic-paper-reviewer
 ---
 
-# Academic Pipeline v3.7.0 — Full Academic Research Workflow Orchestrator
+# Academic Pipeline v3.9.4.2 — Full Academic Research Workflow Orchestrator
 
 A lightweight orchestrator that manages the complete academic pipeline from research exploration to final manuscript. It does not perform substantive work — it only detects stages, recommends modes, dispatches skills, manages transitions, and tracks state.
 
+> **Routing discipline (v3.9.2):** see `.claude/CLAUDE.md` "Routing Discipline (v3.9.2)" + `shared/references/intent_clarification_protocol.md` for cross-skill routing rules. This skill assumes routing has already settled — ambiguous cross-phase materials should have been clarified upstream.
+
 **v3.6.3 (opt-in):** Set `ARS_PASSPORT_RESET=1` to promote FULL checkpoints to context-reset boundaries. Use `resume_from_passport=<hash>` in a fresh session to continue from the recorded stage. See [`references/passport_as_reset_boundary.md`](references/passport_as_reset_boundary.md).
+
+**v3.8 (opt-in):** Set `ARS_CLAIM_AUDIT=1` to enable the L3 claim-faithfulness audit gate at the Stage 4 → Stage 5 transition. When the flag is set, the orchestrator dispatches `claim_ref_alignment_audit_agent` after the v3.7.1 Cite-Time Provenance Finalizer and before `formatter_agent`'s hard gate. The audit emits `claim_audit_results[]` + `uncited_assertions[]` + `claim_drifts[]` + `constraint_violations[]` + `audit_sampling_summaries[]` aggregates per the 8-row matrix; HIGH-WARN classes gate-refuse output via the formatter REFUSE rules 6-10. Default OFF for v3.8.0 — ramp-on plan deferred to post-calibration evidence (spec §5 mode flag rationale). See `agents/claim_ref_alignment_audit_agent.md` and the orchestrator §3.6 prose.
 
 **v2.0 Core Improvements**:
 1. **Mandatory user confirmation checkpoints** — Each stage completion requires user confirmation before proceeding to the next step
@@ -200,7 +204,7 @@ If ANY answer raises concern, include it in the checkpoint presentation to the u
 
 ---
 
-## Agent Team (4 Agents)
+## Agent Team (5 Agents)
 
 | # | Agent | Role | File |
 |---|-------|------|------|
@@ -208,6 +212,7 @@ If ANY answer raises concern, include it in the checkpoint presentation to the u
 | 2 | `state_tracker_agent` | State tracker: records completed stages, produced materials, revision loop count | `agents/state_tracker_agent.md` |
 | 3 | `integrity_verification_agent` | Integrity verifier: 100% reference/citation/data verification (blocking) | `agents/integrity_verification_agent.md` |
 | 4 | `collaboration_depth_agent` | **Observer (advisory only — never blocks).** Reads dialogue log and scores user-AI collaboration pattern against `shared/collaboration_depth_rubric.md`. Invoked at FULL/SLIM checkpoints and at pipeline completion. Based on Wang & Zhang (2026). | `agents/collaboration_depth_agent.md` |
+| 5 | `claim_ref_alignment_audit_agent` | **Opt-in claim faithfulness auditor (v3.8 #103).** Audits sampled citations for claim ↔ reference alignment + negative-constraint compliance; emits per-claim `claim_audit_results[]`, `claim_drift[]`, `uncited_assertions[]`, `constraint_violations[]`. Dispatched via orchestrator §3.6 when claim_audit mode is requested. | `agents/claim_ref_alignment_audit_agent.md` |
 
 ---
 
@@ -300,6 +305,28 @@ Checkpoint: [MANDATORY/ADVISORY] — [What user needs to confirm]
 ````
 
 **Stage-specific reinforcement content**: See `references/reinforcement_content.md` for the full transition → reinforcement focus table.
+
+---
+
+## Phase-by-phase Invocation Contract (v3.9.2)
+
+academic-pipeline is the orchestrator skill that coordinates the full ARS pipeline across 10 stages (delegating to deep-research, academic-paper, academic-paper-reviewer). Two invocation modes:
+
+**Mode A — orchestrator-driven (default):** `pipeline_orchestrator_agent` runs all stages end-to-end with state tracking via Material Passport. `state_tracker_agent`, `integrity_verification_agent`, `collaboration_depth_agent`, and `claim_ref_alignment_audit_agent` are dispatched by the orchestrator at the appropriate checkpoints.
+
+**Mode B — phase-by-phase (cross-session resume):** User invokes one phase agent at a time across sessions, typically via `ARS_PASSPORT_RESET=1` + `resume_from_passport=<hash>` (see `references/passport_as_reset_boundary.md`).
+
+In Mode B, **single-phase agents (Bucket A per `docs/design/2026-05-18-ars-v3.9.2-agent-phase-classification.md`) in the downstream skills (deep-research, academic-paper, academic-paper-reviewer) stay strictly within their assigned phase for writes**. The 5 agents in academic-pipeline itself are all cross-phase / meta by design (Bucket C/D) — they have no fence by design:
+
+- `pipeline_orchestrator_agent` (D — orchestrator, full pipeline visibility)
+- `state_tracker_agent` (D — meta state, all phases)
+- `integrity_verification_agent` (C — Stage 2.5 / 4.5 cross-skill gate)
+- `collaboration_depth_agent` (C — FULL/SLIM checkpoints + pipeline completion, advisory-only)
+- `claim_ref_alignment_audit_agent` (C — opt-in claim audit, phase-orthogonal)
+
+Routing into Mode B requires explicit user signal — `/ars-<mode>` slash command or `[direct-mode]` prefix. Ambiguous cross-phase input defaults to clarification per `.claude/CLAUDE.md` Routing Discipline + `shared/references/intent_clarification_protocol.md`. **Critically:** if `pipeline_orchestrator_agent` is dispatched on ambiguous cross-phase materials, the orchestrator itself currently cannot reconcile (this is the v3.10 conductor #134 work) — v3.9.2 routes such cases to clarification BEFORE the orchestrator runs.
+
+**Enforcement (v3.9.2):** prompt-level via Phase Boundary blocks on downstream Bucket A agents + advisory verifier (`scripts/check_pipeline_integrity.py`). Deterministic PreToolUse hook + multi-phase envelope + orchestrator structured intake deferred to v3.10 active conductor (#134).
 
 ---
 
@@ -481,6 +508,7 @@ Explicit prohibitions to prevent common failure modes:
 | state_tracker_agent | `agents/state_tracker_agent.md` |
 | integrity_verification_agent | `agents/integrity_verification_agent.md` |
 | collaboration_depth_agent | `agents/collaboration_depth_agent.md` |
+| claim_ref_alignment_audit_agent | `agents/claim_ref_alignment_audit_agent.md` |
 
 ---
 
@@ -492,6 +520,7 @@ Explicit prohibitions to prevent common failure modes:
 | `references/plagiarism_detection_protocol.md` | Phase D originality verification protocol + self-plagiarism + AI text characteristics |
 | `references/mode_advisor.md` | Unified cross-skill decision tree: maps user intent to optimal skill + mode |
 | `references/claim_verification_protocol.md` | Phase E claim verification protocol: claim extraction, source tracing, cross-referencing, verdict taxonomy |
+| `references/claim_audit_calibration_protocol.md` | v3.8 #103 claim_ref_alignment audit calibration: gold-set shape (T-C3), threshold gates FNR<0.15 / FPR<0.10 (T-C1), per-class FNR/FPR reporting (T-C2). Re-run via `PYTHONPATH=. python3 -m unittest scripts.test_claim_audit_calibration -v`. |
 | `references/ai_research_failure_modes.md` | 7-mode AI research failure checklist (Lu 2026), run at Stage 2.5 + 4.5 with blocking behaviour, reported at Stage 6 |
 | `references/team_collaboration_protocol.md` | Multi-person team coordination: role definitions, handoff protocol, version control, conflict resolution |
 | `references/integrity_review_protocol.md` | Stage 2.5 + 4.5 integrity verification: 5-phase protocol details |
