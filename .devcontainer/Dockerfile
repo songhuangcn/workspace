@@ -19,8 +19,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gh \
     openssh-client \
     locales \
+    fontconfig \
+    fonts-croscore \
+    fonts-liberation \
+    fonts-noto-cjk \
+    latexmk \
     sqlite3 \
+    biber \
+    texlive-bibtex-extra \
+    texlive-lang-chinese \
+    texlive-latex-extra \
+    texlive-publishers \
+    texlive-xetex \
     && locale-gen en_US.UTF-8 zh_CN.UTF-8 \
+    && fc-cache -f \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN echo "ubuntu ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
@@ -48,6 +60,8 @@ RUN mise use --global \
     kubectl@1.35 \
     uv@0 \
     rg@15 \
+    pandoc@3 \
+    github:tectonic-typesetting/tectonic@0 \
     && mise cache clear
 
 RUN pip install requests~=2.32.5 urllib3~=2.6.3 pymupdf
