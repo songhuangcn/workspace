@@ -56,7 +56,6 @@ RUN mise use --global \
     node@22 \
     python@3.13 \
     opencode@1.15.10 \
-    claude@2.1 \
     docker-cli@28 \
     kubectl@1.35 \
     uv@0 \
