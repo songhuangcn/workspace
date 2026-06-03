@@ -1,25 +1,28 @@
-name: build-devcontainer-java
+name: build-devcontainer-paper
 
 on:
-  push:
+  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - build-devcontainer
     branches:
       - main
-    paths:
-      - .devcontainer/.dockerignore
-      - .devcontainer/Dockerfile.java
-      - .github/workflows/build-devcontainer-java.yml
-  workflow_dispatch:
+    types:
+      - completed
 
 permissions:
   contents: read
 
 jobs:
   build:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-24.04-arm
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -32,15 +35,17 @@ jobs:
 
       - name: Get short commit SHA
         id: vars
-        run: echo "short_sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+        env:
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: echo "short_sha=${SOURCE_SHA::7}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
           context: .devcontainer
-          file: .devcontainer/Dockerfile.java
+          file: .devcontainer/Dockerfile.paper
           platforms: linux/arm64
           push: true
           tags: |
-            songhuangcn/workspace-java:commit-${{ steps.vars.outputs.short_sha }}
-            songhuangcn/workspace-java:latest
+            songhuangcn/workspace-paper:commit-${{ steps.vars.outputs.short_sha }}
+            songhuangcn/workspace-paper:latest

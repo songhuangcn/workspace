@@ -1,0 +1,43 @@
+ARG BASE_IMAGE=songhuangcn/workspace:latest
+FROM ${BASE_IMAGE}
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+USER root
+
+# Academic paper output stack: LaTeX/PDF, Pandoc DOCX, CJK fonts, and PDF inspection tools.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    biber \
+    default-jre-headless \
+    fontconfig \
+    fonts-croscore \
+    fonts-dejavu \
+    fonts-liberation \
+    fonts-noto-cjk \
+    ghostscript \
+    latexmk \
+    libreoffice-writer \
+    poppler-utils \
+    qpdf \
+    texlive-bibtex-extra \
+    texlive-fonts-recommended \
+    texlive-lang-chinese \
+    texlive-latex-base \
+    texlive-latex-extra \
+    texlive-latex-recommended \
+    texlive-luatex \
+    texlive-publishers \
+    texlive-xetex \
+    && fc-cache -f \
+    && rm -rf /var/lib/apt/lists/*
+
+USER ubuntu
+
+RUN mise use --global \
+    pandoc@3 \
+    github:tectonic-typesetting/tectonic@0 \
+    && mise cache clear
+
+WORKDIR /workspace
+
+CMD ["sleep", "infinity"]

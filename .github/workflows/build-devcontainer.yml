@@ -5,8 +5,11 @@ on:
     branches:
       - main
     paths:
+      - .devcontainer/.dockerignore
       - .devcontainer/Dockerfile
+      - .devcontainer/Dockerfile.paper
       - .github/workflows/build-devcontainer.yml
+      - .github/workflows/build-devcontainer-paper.yml
   workflow_dispatch:
 
 permissions:
