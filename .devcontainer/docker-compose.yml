@@ -17,3 +17,5 @@ services:
       - ./data/opencode:/home/ubuntu/.local/share/opencode
       - ./data/vscode-server-extensions:/home/ubuntu/.vscode-server/extensions
       - ./data/vscode-server-data:/home/ubuntu/.vscode-server/data
+      - ./data/claude:/home/ubuntu/.claude
+      - ./data/claude.json:/home/ubuntu/.claude.json
