@@ -1,7 +1,7 @@
 name: workspace-devcontainer
 services:
   app:
-    image: songhuangcn/workspace:latest
+    image: songhuangcn/workspace-paper:latest
     # build: .
     env_file:
       - .env
