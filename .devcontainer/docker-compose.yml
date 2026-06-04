@@ -12,8 +12,11 @@ services:
       - ~/.ssh:/home/ubuntu/.ssh
       - ~/.gitconfig:/home/ubuntu/.gitconfig
       - ./agents:/home/ubuntu/.agents
+      - ./config/codex:/home/ubuntu/.codex
       - ./config/opencode:/home/ubuntu/.config/opencode
       - ./config/gh:/home/ubuntu/.config/gh
+      - ./data/codex/log:/home/ubuntu/.codex/log
+      - ./data/codex/sessions:/home/ubuntu/.codex/sessions
       - ./data/opencode:/home/ubuntu/.local/share/opencode
       - ./data/vscode-server-extensions:/home/ubuntu/.vscode-server/extensions
       - ./data/vscode-server-data:/home/ubuntu/.vscode-server/data
