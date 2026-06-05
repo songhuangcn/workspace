@@ -60,6 +60,7 @@ RUN mise use --global \
     kubectl@1.35 \
     uv@0 \
     rg@15 \
+    npm:@larksuite/cli@1.0 \
     && mise cache clear
 
 RUN python -m pip install --no-cache-dir requests~=2.32.5 urllib3~=2.6.3 pymupdf
