@@ -38,6 +38,8 @@ RUN mise use --global \
     github:tectonic-typesetting/tectonic@0 \
     && mise cache clear
 
+RUN python -m pip install --no-cache-dir numpy
+
 WORKDIR /workspace
 
 CMD ["sleep", "infinity"]
