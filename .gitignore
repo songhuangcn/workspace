@@ -4,6 +4,8 @@
 !.gitignore
 !Makefile
 !README.md
+!scripts/
+!scripts/**
 !.devcontainer/
 !.devcontainer/**
 !.github/

@@ -12,10 +12,12 @@ services:
       - ~/.ssh:/home/ubuntu/.ssh
       - ~/.gitconfig:/home/ubuntu/.gitconfig
       - ./agents:/home/ubuntu/.agents
-      - ./config/codex:/home/ubuntu/.codex
       - ./config/opencode:/home/ubuntu/.config/opencode
-      - ./config/gh:/home/ubuntu/.config/gh
+      - ./data/gh:/home/ubuntu/.config/gh
       - ./data/opencode:/home/ubuntu/.local/share/opencode
+      - ./data/codex:/home/ubuntu/.codex
+      - ./data/claude:/home/ubuntu/.claude
+      - ./data/claude.json:/home/ubuntu/.claude.json
       - ./data/vscode-server-extensions:/home/ubuntu/.vscode-server/extensions
       - ./data/vscode-server-data:/home/ubuntu/.vscode-server/data
       - /var/run/docker.sock:/var/run/docker.sock
