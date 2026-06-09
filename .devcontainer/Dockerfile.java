@@ -50,12 +50,16 @@ RUN mise use --global \
     node@22 \
     python@3.13 \
     opencode@1.15.10 \
+    docker-cli@28 \
+    docker-compose@2 \
     kubectl@1.35 \
     uv@0 \
     rg@15 \
     java@zulu-8.92.0.21 \
     java@zulu-21.40.17.0 \
     maven@3.9.9 \
+    && mkdir -p ~/.docker/cli-plugins \
+    && ln -sf "$(mise which docker-cli-plugin-docker-compose)" ~/.docker/cli-plugins/docker-compose \
     && mise cache clear
 
 RUN pip install requests~=2.32.5 urllib3~=2.6.3 pymupdf

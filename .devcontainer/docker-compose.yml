@@ -18,3 +18,4 @@ services:
       - ./data/opencode:/home/ubuntu/.local/share/opencode
       - ./data/vscode-server-extensions:/home/ubuntu/.vscode-server/extensions
       - ./data/vscode-server-data:/home/ubuntu/.vscode-server/data
+      - /var/run/docker.sock:/var/run/docker.sock

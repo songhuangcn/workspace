@@ -56,10 +56,14 @@ RUN mise use --global \
     python@3.13 \
     opencode@1.15.10 \
     npm:@openai/codex@0.137 \
+    docker-cli@28 \
+    docker-compose@2 \
     kubectl@1.35 \
     uv@0 \
     rg@15 \
     npm:@larksuite/cli@1.0 \
+    && mkdir -p ~/.docker/cli-plugins \
+    && ln -sf "$(mise which docker-cli-plugin-docker-compose)" ~/.docker/cli-plugins/docker-compose \
     && mise cache clear
 
 RUN python -m pip install --no-cache-dir requests~=2.32.5 urllib3~=2.6.3 pymupdf
