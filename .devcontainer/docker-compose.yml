@@ -9,6 +9,7 @@ services:
       - "4096:4096"
     volumes:
       - ..:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
       - ~/.ssh:/home/ubuntu/.ssh
       - ~/.gitconfig:/home/ubuntu/.gitconfig
       - ./agents:/home/ubuntu/.agents
@@ -20,4 +21,3 @@ services:
       - ./data/claude.json:/home/ubuntu/.claude.json
       - ./data/vscode-server-extensions:/home/ubuntu/.vscode-server/extensions
       - ./data/vscode-server-data:/home/ubuntu/.vscode-server/data
-      - /var/run/docker.sock:/var/run/docker.sock
