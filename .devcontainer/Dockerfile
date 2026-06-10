@@ -56,7 +56,7 @@ RUN mise use --global \
     python@3.13 \
     opencode@1.15.10 \
     npm:@openai/codex@0.137 \
-    claude@2.1.169 \
+    claude@2.1.170 \
     docker-cli@28 \
     docker-compose@2 \
     kubectl@1.35 \

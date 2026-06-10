@@ -14,10 +14,11 @@ services:
       - ~/.gitconfig:/home/ubuntu/.gitconfig
       - ./agents:/home/ubuntu/.agents
       - ./config/opencode:/home/ubuntu/.config/opencode
+      - ./config/.bash_aliases:/home/ubuntu/.bash_aliases
       - ./data/gh:/home/ubuntu/.config/gh
       - ./data/opencode:/home/ubuntu/.local/share/opencode
       - ./data/codex:/home/ubuntu/.codex
       - ./data/claude:/home/ubuntu/.claude
-      - ./data/claude.json:/home/ubuntu/.claude.json
+      - ./data/.claude.json:/home/ubuntu/.claude.json
       - ./data/vscode-server-extensions:/home/ubuntu/.vscode-server/extensions
       - ./data/vscode-server-data:/home/ubuntu/.vscode-server/data
