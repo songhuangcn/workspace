@@ -8,6 +8,7 @@ This repository contains a Docker-based development workspace for running OpenCo
 - Docker Compose setup for running the workspace container.
 - Base Ubuntu 24.04 workspace image with common CLI tools.
 - Java-enabled workspace image with JDK 8, JDK 21, and Maven.
+- Paper workspace image adding a LaTeX/XeTeX, Pandoc, and CJK-font stack for academic output (the image the container runs by default).
 - OpenCode configuration and bundled agent skills.
 - GitHub Actions workflows for publishing Docker images.
 
@@ -19,6 +20,10 @@ The workflows publish these Docker images:
 - `songhuangcn/workspace:commit-<short-sha>`
 - `songhuangcn/workspace-java:latest`
 - `songhuangcn/workspace-java:commit-<short-sha>`
+- `songhuangcn/workspace-paper:latest`
+- `songhuangcn/workspace-paper:commit-<short-sha>`
+
+`docker-compose.yml` runs `songhuangcn/workspace-paper:latest` by default.
 
 ## Local Usage
 
@@ -66,9 +71,11 @@ Important tracked files:
 - `docker-compose.yml`: container image, ports, and mounted config directories.
 - `Dockerfile`: base workspace image definition.
 - `Dockerfile.java`: Java workspace image definition.
+- `Dockerfile.paper`: paper workspace image definition (extends the base image).
 - `config/opencode/opencode.jsonc`: OpenCode runtime configuration.
 - `.github/workflows/build-devcontainer.yml`: base image publishing workflow.
 - `.github/workflows/build-devcontainer-java.yml`: Java image publishing workflow.
+- `.github/workflows/build-devcontainer-paper.yml`: paper image publishing workflow.
 
 ## Local Data And Secrets
 
