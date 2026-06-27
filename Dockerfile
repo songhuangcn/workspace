@@ -54,7 +54,7 @@ RUN curl https://mise.run/bash | sh
 RUN mise use --global \
     node@22 \
     python@3.13 \
-    opencode@1.15.10 \
+    opencode@1.17.11 \
     npm:@openai/codex@0.137 \
     claude@2.1.170 \
     docker-cli@28 \
