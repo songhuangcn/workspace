@@ -25,7 +25,7 @@ The workflows publish these Docker images:
 Create a local environment file from the sample if needed:
 
 ```bash
-cp .devcontainer/.env.sample .devcontainer/.env
+cp .env.sample .env
 ```
 
 Start the container and OpenCode web server:
@@ -62,11 +62,11 @@ make update
 
 Important tracked files:
 
-- `.devcontainer/devcontainer.json`: devcontainer entrypoint configuration.
-- `.devcontainer/docker-compose.yml`: container image, ports, and mounted config directories.
-- `.devcontainer/Dockerfile`: base workspace image definition.
-- `.devcontainer/Dockerfile.java`: Java workspace image definition.
-- `.devcontainer/config/opencode/opencode.jsonc`: OpenCode runtime configuration.
+- `devcontainer.json`: devcontainer entrypoint configuration.
+- `docker-compose.yml`: container image, ports, and mounted config directories.
+- `Dockerfile`: base workspace image definition.
+- `Dockerfile.java`: Java workspace image definition.
+- `config/opencode/opencode.jsonc`: OpenCode runtime configuration.
 - `.github/workflows/build-devcontainer.yml`: base image publishing workflow.
 - `.github/workflows/build-devcontainer-java.yml`: Java image publishing workflow.
 
@@ -74,9 +74,9 @@ Important tracked files:
 
 The repository intentionally ignores local runtime data and secrets, including:
 
-- `.devcontainer/.env`
-- `.devcontainer/config/.ssh/*`
-- `.devcontainer/config/gh/*`
-- `.devcontainer/data/opencode/*`
+- `.env`
+- `config/.ssh/*`
+- `config/gh/*`
+- `data/opencode/*`
 
 Keep credentials and generated data out of Git.

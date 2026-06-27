@@ -1,4 +1,4 @@
-COMPOSE = docker compose -f .devcontainer/docker-compose.yml
+COMPOSE = docker compose -f docker-compose.yml
 
 .PHONY: run
 run:

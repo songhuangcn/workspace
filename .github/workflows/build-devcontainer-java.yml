@@ -5,8 +5,8 @@ on:
     branches:
       - main
     paths:
-      - .devcontainer/.dockerignore
-      - .devcontainer/Dockerfile.java
+      - .dockerignore
+      - Dockerfile.java
       - .github/workflows/build-devcontainer-java.yml
   workflow_dispatch:
 
@@ -37,8 +37,8 @@ jobs:
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
-          context: .devcontainer
-          file: .devcontainer/Dockerfile.java
+          context: .
+          file: Dockerfile.java
           platforms: linux/arm64
           push: true
           tags: |

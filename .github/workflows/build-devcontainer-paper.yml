@@ -42,8 +42,8 @@ jobs:
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
-          context: .devcontainer
-          file: .devcontainer/Dockerfile.paper
+          context: .
+          file: Dockerfile.paper
           platforms: linux/arm64
           push: true
           tags: |
