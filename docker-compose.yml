@@ -10,8 +10,8 @@ services:
     # depends_on:
     #   docker:
     #     condition: service_healthy
-    ports:
-      - "4096:4096"
+    # ports:
+    #   - "4096:4096"
     volumes:
       - ..:/workspace
       - ~/.ssh:/home/ubuntu/.ssh
