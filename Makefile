@@ -11,21 +11,19 @@ WORKSPACE    = ..
 .PHONY: run
 run:
 	$(DEVCONTAINER) up --workspace-folder $(WORKSPACE)
-	$(DEVCONTAINER) exec --workspace-folder $(WORKSPACE) opencode web --port 4096 --hostname 0.0.0.0
 
 .PHONY: start
 start:
 	$(DEVCONTAINER) up --workspace-folder $(WORKSPACE)
-	$(COMPOSE) exec -d app opencode web --port 4096 --hostname 0.0.0.0
 
 .PHONY: start-opencode
 start-opencode:
-	$(COMPOSE) exec -d app opencode web --port 4096 --hostname 0.0.0.0
+	$(COMPOSE) exec -d app bash .devcontainer/scripts/post-start.sh
 
 .PHONY: restart-opencode
 restart-opencode:
 	$(COMPOSE) exec app sh -c "lsof -ti tcp:4096 | xargs -r kill || true"
-	$(COMPOSE) exec -d app opencode web --port 4096 --hostname 0.0.0.0
+	$(COMPOSE) exec -d app bash .devcontainer/scripts/post-start.sh
 
 .PHONY: logs
 logs:

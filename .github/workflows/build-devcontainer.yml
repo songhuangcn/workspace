@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -33,9 +33,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Install devcontainer CLI
-        run: npm install -g @devcontainers/cli
-
       - name: Get short commit SHA
         id: vars
         run: echo "short_sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
@@ -44,13 +41,10 @@ jobs:
       - name: Prepare env file
         run: cp .env.sample .env
 
-      # compose 模式的 devcontainer build 不支持 --push（CLI 限制），因此本地 build 后用 docker push。
-      # runner 为 arm64 原生，无需 --platform。镜像含 dind/sshd features（来自 devcontainer.json）。
       - name: Build devcontainer image
-        run: devcontainer build --workspace-folder . --config devcontainer.json --image-name songhuangcn/devcontainer:latest
-
-      - name: Tag and push
-        run: |
-          docker tag songhuangcn/devcontainer:latest songhuangcn/devcontainer:commit-${{ steps.vars.outputs.short_sha }}
-          docker push songhuangcn/devcontainer:latest
-          docker push songhuangcn/devcontainer:commit-${{ steps.vars.outputs.short_sha }}
+        uses: devcontainers/ci@v0.3
+        with:
+          configFile: devcontainer.json
+          imageName: songhuangcn/devcontainer
+          imageTag: latest,commit-${{ steps.vars.outputs.short_sha }}
+          push: always
