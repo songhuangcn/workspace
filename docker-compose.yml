@@ -1,15 +1,18 @@
 name: workspace-devcontainer
 services:
   app:
-    image: songhuangcn/workspace-paper:latest
+    image: songhuangcn/workspace:latest
     # build: .
     env_file:
       - .env
+    environment:
+      DOCKER_HOST: tcp://docker:2375
+    depends_on:
+      - docker
     ports:
       - "4096:4096"
     volumes:
       - ..:/workspace
-      - /var/run/docker.sock:/var/run/docker.sock
       - ~/.ssh:/home/ubuntu/.ssh
       - ~/.gitconfig:/home/ubuntu/.gitconfig
       - ./agents:/home/ubuntu/.agents
@@ -22,3 +25,14 @@ services:
       - ./data/.claude.json:/home/ubuntu/.claude.json
       - ./data/vscode-server-extensions:/home/ubuntu/.vscode-server/extensions
       - ./data/vscode-server-data:/home/ubuntu/.vscode-server/data
+  docker:
+    image: docker:dind
+    privileged: true
+    environment:
+      DOCKER_TLS_CERTDIR: ""
+    volumes:
+      - ..:/workspace
+      - docker-data:/var/lib/docker
+
+volumes:
+  docker-data:
