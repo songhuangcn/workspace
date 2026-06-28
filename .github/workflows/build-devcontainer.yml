@@ -7,9 +7,10 @@ on:
     paths:
       - .dockerignore
       - Dockerfile
-      - Dockerfile.paper
+      - devcontainer.json
+      - devcontainer-lock.json
+      - docker-compose.yml
       - .github/workflows/build-devcontainer.yml
-      - .github/workflows/build-devcontainer-paper.yml
   workflow_dispatch:
 
 permissions:
@@ -32,17 +33,24 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Install devcontainer CLI
+        run: npm install -g @devcontainers/cli
+
       - name: Get short commit SHA
         id: vars
         run: echo "short_sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
-      - name: Build and push image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: Dockerfile
-          platforms: linux/arm64
-          push: true
-          tags: |
-            songhuangcn/workspace:commit-${{ steps.vars.outputs.short_sha }}
-            songhuangcn/workspace:latest
+      # docker-compose 模式的 devcontainer build 需要 env_file 存在（运行时才用到其值）。
+      - name: Prepare env file
+        run: cp .env.sample .env
+
+      # compose 模式的 devcontainer build 不支持 --push（CLI 限制），因此本地 build 后用 docker push。
+      # runner 为 arm64 原生，无需 --platform。镜像含 dind/sshd features（来自 devcontainer.json）。
+      - name: Build devcontainer image
+        run: devcontainer build --workspace-folder . --config devcontainer.json --image-name songhuangcn/devcontainer:latest
+
+      - name: Tag and push
+        run: |
+          docker tag songhuangcn/devcontainer:latest songhuangcn/devcontainer:commit-${{ steps.vars.outputs.short_sha }}
+          docker push songhuangcn/devcontainer:latest
+          docker push songhuangcn/devcontainer:commit-${{ steps.vars.outputs.short_sha }}

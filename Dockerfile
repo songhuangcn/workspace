@@ -51,20 +51,20 @@ ENV TZ=Asia/Shanghai \
 
 RUN curl https://mise.run/bash | sh
 
+# 注意：不在此处用 mise 安装 docker-cli/docker-compose。
+# Docker（dockerd + CLI + compose 插件 + containerd/runc）由 docker-in-docker
+# devcontainer feature 在 songhuangcn/devcontainer 镜像中统一提供（见 devcontainer.build.json）。
+# 若 mise 装了 docker-cli，dind feature 会误判 docker 已存在而跳过 engine 安装，导致 dockerd 缺失。
 RUN mise use --global \
     node@22 \
     python@3.13 \
     opencode@1.17.11 \
     npm:@openai/codex@0.137 \
     claude@2.1.170 \
-    docker-cli@28 \
-    docker-compose@2 \
     kubectl@1.35 \
     uv@0 \
     rg@15 \
     npm:@larksuite/cli@1.0 \
-    && mkdir -p ~/.docker/cli-plugins \
-    && ln -sf "$(mise which docker-cli-plugin-docker-compose)" ~/.docker/cli-plugins/docker-compose \
     && mise cache clear
 
 RUN python -m pip install --no-cache-dir requests~=2.32.5 urllib3~=2.6.3 pymupdf

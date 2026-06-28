@@ -1,13 +1,21 @@
-COMPOSE = docker compose -f docker-compose.yml
+# 启动/进入容器走 devcontainer CLI（让镜像 metadata 中的 features 生效）；
+# 停止/清理/日志走 docker compose（devcontainer CLI 无 stop/down）。
+# 前置：宿主机需安装 devcontainer CLI —— npm install -g @devcontainers/cli（详见 README）。
+# COMPOSE_PROJECT_NAME 让 devcontainer up 与 docker compose 命中同一组容器。
+export COMPOSE_PROJECT_NAME = workspace-devcontainer
+
+COMPOSE      = docker compose -f docker-compose.yml
+DEVCONTAINER = devcontainer
+WORKSPACE    = ..
 
 .PHONY: run
 run:
-	$(COMPOSE) up -d
-	$(COMPOSE) exec app opencode web --port 4096 --hostname 0.0.0.0
+	$(DEVCONTAINER) up --workspace-folder $(WORKSPACE)
+	$(DEVCONTAINER) exec --workspace-folder $(WORKSPACE) opencode web --port 4096 --hostname 0.0.0.0
 
 .PHONY: start
 start:
-	$(COMPOSE) up -d
+	$(DEVCONTAINER) up --workspace-folder $(WORKSPACE)
 	$(COMPOSE) exec -d app opencode web --port 4096 --hostname 0.0.0.0
 
 .PHONY: start-opencode
@@ -32,7 +40,7 @@ stop:
 
 .PHONY: bash
 bash:
-	$(COMPOSE) exec app bash
+	$(DEVCONTAINER) exec --workspace-folder $(WORKSPACE) bash
 
 .PHONY: update
 update: pull down start
@@ -41,9 +49,11 @@ update: pull down start
 pull:
 	$(COMPOSE) pull app
 
+# 本地构建运行镜像（Dockerfile + dind/sshd features），与 CI 一致。compose 同时支持 image 与
+# build：平时 `make pull` 拉取预构建镜像，改 Dockerfile 后用 `make build` 本地重建同名镜像。
 .PHONY: build
 build:
-	$(COMPOSE) build
+	$(DEVCONTAINER) build --workspace-folder . --config devcontainer.json --image-name songhuangcn/devcontainer:latest
 
 .PHONY: down
 down:

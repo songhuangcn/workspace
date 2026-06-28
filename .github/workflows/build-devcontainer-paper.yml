@@ -39,7 +39,8 @@ jobs:
           SOURCE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
         run: echo "short_sha=${SOURCE_SHA::7}" >> "$GITHUB_OUTPUT"
 
-      - name: Build and push image
+      # 基于 build-devcontainer 推送的 songhuangcn/devcontainer:latest 构建 paper 镜像。
+      - name: Build and push paper image
         uses: docker/build-push-action@v6
         with:
           context: .

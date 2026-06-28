@@ -1,4 +1,5 @@
-ARG BASE_IMAGE=songhuangcn/workspace:latest
+# 基于含 dind/sshd features 的运行镜像构建（CI 推送的 songhuangcn/devcontainer:latest）。
+ARG BASE_IMAGE=songhuangcn/devcontainer:latest
 FROM ${BASE_IMAGE}
 
 ARG DEBIAN_FRONTEND=noninteractive

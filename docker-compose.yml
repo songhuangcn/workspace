@@ -1,15 +1,18 @@
 name: workspace-devcontainer
 services:
   app:
-    image: songhuangcn/workspace:latest
-    # build: .
+    # 默认拉取预构建镜像；改 Dockerfile 后用 `make build`(devcontainer build) 本地构建同名镜像。
+    image: ${IMAGE_NAME:-songhuangcn/devcontainer}:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      cache_from:
+        - songhuangcn/devcontainer:latest
     env_file:
       - .env
-    environment:
-      DOCKER_HOST: tcp://docker:2375
-    # depends_on:
-    #   docker:
-    #     condition: service_healthy
+    # docker-in-docker feature 在容器内启动 dockerd，需要特权模式与 init 进程。
+    privileged: true
+    init: true
     # ports:
     #   - "4096:4096"
     volumes:
@@ -26,19 +29,8 @@ services:
       - ./data/.claude.json:/home/ubuntu/.claude.json
       - ./data/vscode-server-extensions:/home/ubuntu/.vscode-server/extensions
       - ./data/vscode-server-data:/home/ubuntu/.vscode-server/data
-  docker:
-    image: docker:28-dind
-    privileged: true
-    environment:
-      DOCKER_TLS_CERTDIR: ""
-    volumes:
-      - ..:/workspace
+      # 持久化容器内 Docker 镜像/容器数据（替代原 dind sidecar 的 docker-data 卷）。
       - docker-data:/var/lib/docker
-    healthcheck:
-      test: ["CMD", "docker", "info"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
 
 volumes:
   docker-data:
