@@ -7,8 +7,9 @@ services:
       - .env
     environment:
       DOCKER_HOST: tcp://docker:2375
-    depends_on:
-      - docker
+    # depends_on:
+    #   docker:
+    #     condition: service_healthy
     ports:
       - "4096:4096"
     volumes:
@@ -26,13 +27,18 @@ services:
       - ./data/vscode-server-extensions:/home/ubuntu/.vscode-server/extensions
       - ./data/vscode-server-data:/home/ubuntu/.vscode-server/data
   docker:
-    image: docker:dind
+    image: docker:28-dind
     privileged: true
     environment:
       DOCKER_TLS_CERTDIR: ""
     volumes:
       - ..:/workspace
       - docker-data:/var/lib/docker
+    healthcheck:
+      test: ["CMD", "docker", "info"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
 volumes:
   docker-data:
