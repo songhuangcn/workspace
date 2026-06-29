@@ -5,7 +5,7 @@
   "workspaceFolder": "/workspace",
   "remoteUser": "ubuntu",
   "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:4": {},
     "ghcr.io/devcontainers/features/sshd:1": {}
   },
   "postCreateCommand": "bash .devcontainer/scripts/post-create.sh",
