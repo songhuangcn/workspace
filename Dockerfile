@@ -59,6 +59,7 @@ RUN mise use --global \
     node@22 \
     python@3.13 \
     opencode@1.17.11 \
+    npm:@fission-ai/openspec@1.5.0 \
     npm:@openai/codex@0.137 \
     claude@2.1.170 \
     kubectl@1.35 \

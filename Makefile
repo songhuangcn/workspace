@@ -22,7 +22,7 @@ start-opencode:
 
 .PHONY: restart-opencode
 restart-opencode:
-	$(COMPOSE) exec app sh -c "lsof -ti tcp:4096 | xargs -r kill || true"
+	$(COMPOSE) exec app sh -c "lsof -ti tcp:4096 -sTCP:LISTEN | xargs -r kill || true"
 	$(COMPOSE) exec -d app bash .devcontainer/scripts/post-start.sh
 
 .PHONY: logs
